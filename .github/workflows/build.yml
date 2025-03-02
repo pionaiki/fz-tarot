@@ -9,7 +9,7 @@ on:
     branches: 
       - main 
   pull_request:
-  schedule: 
+  #schedule: 
     # do a build every day
     #- cron: "1 1 * * *"
 
