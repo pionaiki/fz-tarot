@@ -306,30 +306,27 @@ void draw_tarot(void* context) {
     if(card_selected >= n) card_selected = 0;
     spread.selected[card_selected] = 1;
     int x_offsets[3] = {(128 - card_x) / 2 - 32, (128 - card_x) / 2, (128 - card_x) / 2 + 32};
-    
+
     for(int i = 0; i < n; ++i) {
         widget_add_icon_element(
             app->widget, x_offsets[i], 10 - 2 * spread.selected[i], card[spread.card[i]].icon);
-        // Add "R" indicator for reversed cards
+        // Improved: Add big 'R' above reversed cards, centered
         if(spread.card[i] >= card_number) {
             widget_add_string_element(
-                app->widget, 
-                x_offsets[i] + card_x - 8, 
-                10 - 2 * spread.selected[i] + 2, 
-                AlignRight, 
-                AlignTop, 
-                FontSecondary, 
+                app->widget,
+                x_offsets[i] + card_x / 2, // center over card
+                1, // above the card
+                AlignCenter,
+                AlignTop,
+                FontPrimary,
                 "R");
         }
     }
-    
+
     // Adjusted cursor position (moved 8px to the right)
     widget_add_icon_element(
-        app->widget, 
-        x_offsets[card_selected] - 11 + card_x / 2 + 9,
-        41, 
-        &I_cursor);
-    
+        app->widget, x_offsets[card_selected] - 11 + card_x / 2 + 9, 41, &I_cursor);
+
     widget_add_string_element(
         app->widget,
         64,
