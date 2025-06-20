@@ -17,6 +17,7 @@ typedef enum {
     AppScene_MainMenu,
     AppScene_About,
     AppScene_Game,
+    AppScene_Settings,
     AppScene_count
 } AppScene;
 
@@ -30,15 +31,16 @@ typedef struct {
     Submenu* submenu; // Submenu for the main menu
     Popup* popup; // Popup for about
     Widget* widget; // Widget for game
+    int cards_to_pull; // NEW: Number of cards to pull (1-3)
 } App;
 
 /* all custom events */
-typedef enum { AppEvent_ShowGame, AppEvent_ShowAbout } AppEvent;
+typedef enum { AppEvent_ShowGame, AppEvent_ShowAbout, AppEvent_ShowSettings } AppEvent;
 
 /* main menu scene */
 
 /* indices for menu items */
-typedef enum { AppMenuSelection_Run, AppMenuSelection_About } AppMenuSelection;
+typedef enum { AppMenuSelection_Run, AppMenuSelection_About, AppMenuSelection_Settings } AppMenuSelection;
 
 /* main menu callback - sends a custom event to the scene manager based on the menu selection */
 void tarot_app_menu_callback_main_menu(void* context, uint32_t index) {
@@ -50,6 +52,9 @@ void tarot_app_menu_callback_main_menu(void* context, uint32_t index) {
         break;
     case AppMenuSelection_About:
         scene_manager_handle_custom_event(app->scene_manager, AppEvent_ShowAbout);
+        break;
+    case AppMenuSelection_Settings:
+        scene_manager_handle_custom_event(app->scene_manager, AppEvent_ShowSettings);
         break;
     }
 }
@@ -72,6 +77,12 @@ void tarot_app_scene_on_enter_main_menu(void* context) {
         AppMenuSelection_About,
         tarot_app_menu_callback_main_menu,
         app);
+    submenu_add_item(
+        app->submenu,
+        "Settings",
+        AppMenuSelection_Settings,
+        tarot_app_menu_callback_main_menu,
+        app);
     view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Submenu);
 }
 
@@ -89,6 +100,10 @@ bool tarot_app_scene_on_event_main_menu(void* context, SceneManagerEvent event) 
             break;
         case AppEvent_ShowAbout:
             scene_manager_next_scene(app->scene_manager, AppScene_About);
+            consumed = true;
+            break;
+        case AppEvent_ShowSettings:
+            scene_manager_next_scene(app->scene_manager, AppScene_Settings);
             consumed = true;
             break;
         }
@@ -148,6 +163,7 @@ struct Card {
 };
 
 const struct Card card[] = {
+    // Major Arcana (upright)
     {"The Fool",            &I_major_0},
     {"The Magician",        &I_major_1},
     {"The High Priestess",  &I_major_2},
@@ -170,6 +186,7 @@ const struct Card card[] = {
     {"The Sun",             &I_major_19},
     {"Judgement",           &I_major_20},
     {"The World",           &I_major_21},
+    // Major Arcana (reversed)
     {"The Fool",            &I_major_0_},
     {"The Magician",        &I_major_1_},
     {"The High Priestess",  &I_major_2_},
@@ -191,7 +208,24 @@ const struct Card card[] = {
     {"The Moon",            &I_major_18_},
     {"The Sun",             &I_major_19_},
     {"Judgement",           &I_major_20_},
-    {"The World",           &I_major_21_}
+    {"The World",           &I_major_21_},
+    // Minor Arcana Placeholders (upright only, not used in spread)
+    // Cups
+    {"Ace of Cups", NULL}, {"2 of Cups", NULL}, {"3 of Cups", NULL}, {"4 of Cups", NULL}, {"5 of Cups", NULL},
+    {"6 of Cups", NULL}, {"7 of Cups", NULL}, {"8 of Cups", NULL}, {"9 of Cups", NULL}, {"10 of Cups", NULL},
+    {"Page of Cups", NULL}, {"Knight of Cups", NULL}, {"Queen of Cups", NULL}, {"King of Cups", NULL},
+    // Swords
+    {"Ace of Swords", NULL}, {"2 of Swords", NULL}, {"3 of Swords", NULL}, {"4 of Swords", NULL}, {"5 of Swords", NULL},
+    {"6 of Swords", NULL}, {"7 of Swords", NULL}, {"8 of Swords", NULL}, {"9 of Swords", NULL}, {"10 of Swords", NULL},
+    {"Page of Swords", NULL}, {"Knight of Swords", NULL}, {"Queen of Swords", NULL}, {"King of Swords", NULL},
+    // Wands
+    {"Ace of Wands", NULL}, {"2 of Wands", NULL}, {"3 of Wands", NULL}, {"4 of Wands", NULL}, {"5 of Wands", NULL},
+    {"6 of Wands", NULL}, {"7 of Wands", NULL}, {"8 of Wands", NULL}, {"9 of Wands", NULL}, {"10 of Wands", NULL},
+    {"Page of Wands", NULL}, {"Knight of Wands", NULL}, {"Queen of Wands", NULL}, {"King of Wands", NULL},
+    // Pentacles
+    {"Ace of Pentacles", NULL}, {"2 of Pentacles", NULL}, {"3 of Pentacles", NULL}, {"4 of Pentacles", NULL}, {"5 of Pentacles", NULL},
+    {"6 of Pentacles", NULL}, {"7 of Pentacles", NULL}, {"8 of Pentacles", NULL}, {"9 of Pentacles", NULL}, {"10 of Pentacles", NULL},
+    {"Page of Pentacles", NULL}, {"Knight of Pentacles", NULL}, {"Queen of Pentacles", NULL}, {"King of Pentacles", NULL}
 };
 
 static uint16_t unbiased_rand (uint16_t max) {
@@ -213,33 +247,31 @@ struct Spread spread;
 void draw_tarot(void* context) {
     App* app = context;
     widget_reset(app->widget);
-
-    // Set the cursor to the selected card
-    spread.selected[0] = 0;
-    spread.selected[1] = 0;
-    spread.selected[2] = 0;
+    int n = app->cards_to_pull;
+    if(n < 1) n = 1;
+    if(n > 3) n = 3;
+    for(int i = 0; i < 3; ++i) spread.selected[i] = 0;
+    if(card_selected >= n) card_selected = 0;
     spread.selected[card_selected] = 1;
-
-    // Draw cards
-    widget_add_icon_element(app->widget, (128-card_x)/2 - 32, 10 - 2*spread.selected[0], card[spread.card[0]].icon);
-    widget_add_icon_element(app->widget, (128-card_x)/2, 10 - 2*spread.selected[1], card[spread.card[1]].icon);
-    widget_add_icon_element(app->widget, (128-card_x)/2 + 32, 10 - 2*spread.selected[2], card[spread.card[2]].icon);
-
-    // Draw cursor
-    widget_add_icon_element(app->widget, (128-card_x)/2 - 34 + card_x/2 + card_selected*32, 41, &I_cursor);
-
-    // Draw card name
+    int x_offsets[3] = { (128-card_x)/2 - 32, (128-card_x)/2, (128-card_x)/2 + 32 };
+    for(int i = 0; i < n; ++i) {
+        widget_add_icon_element(app->widget, x_offsets[i], 10 - 2*spread.selected[i], card[spread.card[i]].icon);
+    }
+    widget_add_icon_element(app->widget, x_offsets[card_selected] - 11 + card_x/2, 41, &I_cursor);
     widget_add_string_element(app->widget, 64, 60, AlignCenter, AlignBottom, FontPrimary, card[spread.card[card_selected]].name);
 }
 
 static bool widget_input_callback(InputEvent* input_event, void* context) {
     App* app = context;
+    int n = app->cards_to_pull;
+    if(n < 1) n = 1;
+    if(n > 3) n = 3;
     bool consumed = false;
     if(input_event->type == InputTypeShort) {
         switch(input_event->key) {
         case InputKeyRight:
             card_selected++;
-            if (card_selected > 2) {
+            if (card_selected >= n) {
                 card_selected = 0;
             }
             consumed = true;
@@ -247,7 +279,7 @@ static bool widget_input_callback(InputEvent* input_event, void* context) {
         case InputKeyLeft:
             card_selected--;
             if (card_selected < 0) {
-                card_selected = 2;
+                card_selected = n-1;
             }
             consumed = true;
             break;
@@ -271,31 +303,24 @@ static bool widget_input_callback(InputEvent* input_event, void* context) {
 void tarot_app_scene_on_enter_game(void* context) {
     FURI_LOG_T(TAG, "tarot_app_scene_on_enter_game");
     App* app = context;
-
-    // Set random spread
-    spread.card[0] = unbiased_rand(card_number);
-    spread.card[1] = unbiased_rand(card_number);
-    while (spread.card[1] == spread.card[0]) {
-        spread.card[1] = unbiased_rand(card_number);
-    };
-    spread.card[2] = unbiased_rand(card_number);
-    while (spread.card[2] == spread.card[0] || spread.card[2] == spread.card[1]) {
-        spread.card[2] = unbiased_rand(card_number);
+    int n = app->cards_to_pull;
+    if(n < 1) n = 1;
+    if(n > 3) n = 3;
+    for(int i = 0; i < n; ++i) {
+        int unique = 0;
+        do {
+            spread.card[i] = unbiased_rand(card_number);
+            unique = 1;
+            for(int j = 0; j < i; ++j) {
+                if(spread.card[i] == spread.card[j]) unique = 0;
+            }
+        } while(!unique);
+        // Always-on reversed logic
+        if(unbiased_rand(2)) spread.card[i] += card_number; // 50% chance reversed
     }
-
-    // Upside down card option
-    if (0/*settings.upside_down*/) {
-        spread.card[0] += card_number*unbiased_rand(2);
-        spread.card[1] += card_number*unbiased_rand(2);
-        spread.card[2] += card_number*unbiased_rand(2);
-    }
-    
     draw_tarot(app);
-
     view_set_context(widget_get_view(app->widget), app);
-
     view_set_input_callback(widget_get_view(app->widget), widget_input_callback);
-
     view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Widget);
 }
 
@@ -314,23 +339,31 @@ void tarot_app_scene_on_exit_game(void* context) {
 
 /* ###### */
 
+// Forward declarations for settings scene (must be before handler arrays)
+void tarot_app_scene_on_enter_settings(void* context);
+bool tarot_app_scene_on_event_settings(void* context, SceneManagerEvent event);
+void tarot_app_scene_on_exit_settings(void* context);
+
 /* collection of all scene on_enter handlers - in the same order as their enum */
 void (*const tarot_app_scene_on_enter_handlers[])(void*) = {
     tarot_app_scene_on_enter_main_menu,
     tarot_app_scene_on_enter_about,
-    tarot_app_scene_on_enter_game};
+    tarot_app_scene_on_enter_game,
+    tarot_app_scene_on_enter_settings};
 
 /* collection of all scene on event handlers - in the same order as their enum */
 bool (*const tarot_app_scene_on_event_handlers[])(void*, SceneManagerEvent) = {
     tarot_app_scene_on_event_main_menu,
     tarot_app_scene_on_event_about,
-    tarot_app_scene_on_event_game};
+    tarot_app_scene_on_event_game,
+    tarot_app_scene_on_event_settings};
 
 /* collection of all scene on exit handlers - in the same order as their enum */
 void (*const tarot_app_scene_on_exit_handlers[])(void*) = {
     tarot_app_scene_on_exit_main_menu,
     tarot_app_scene_on_exit_about,
-    tarot_app_scene_on_exit_game};
+    tarot_app_scene_on_exit_game,
+    tarot_app_scene_on_exit_settings};
 
 /* collection of all on_enter, on_event, on_exit handlers */
 const SceneManagerHandlers tarot_app_scene_event_handlers = {
@@ -365,8 +398,6 @@ void tarot_app_scene_manager_init(App* app) {
 void tarot_app_view_dispatcher_init(App* app) {
     FURI_LOG_T(TAG, "tarot_app_view_dispatcher_init");
     app->view_dispatcher = view_dispatcher_alloc();
-    view_dispatcher_enable_queue(app->view_dispatcher);
-
     // allocate each view
     FURI_LOG_D(TAG, "tarot_app_view_dispatcher_init allocating views");
     app->submenu = submenu_alloc();
@@ -398,6 +429,7 @@ App* tarot_app_init() {
     App* app = malloc(sizeof(App));
     tarot_app_scene_manager_init(app);
     tarot_app_view_dispatcher_init(app);
+    app->cards_to_pull = 3; // Default to 3 cards
     return app;
 }
 
@@ -445,4 +477,39 @@ int32_t tarot_app(void* p) {
     furi_record_close(RECORD_GUI);
     tarot_app_free(app);
     return 0;
+}
+
+/* NEW: Settings scene */
+
+typedef enum { AppSettingsSelection_1 = 1, AppSettingsSelection_2, AppSettingsSelection_3 } AppSettingsSelection;
+
+void tarot_app_menu_callback_settings(void* context, uint32_t index) {
+    FURI_LOG_T(TAG, "tarot_app_menu_callback_settings");
+    App* app = context;
+    app->cards_to_pull = index;
+    // Go back to main menu after selection
+    scene_manager_previous_scene(app->scene_manager);
+}
+
+void tarot_app_scene_on_enter_settings(void* context) {
+    FURI_LOG_T(TAG, "tarot_app_scene_on_enter_settings");
+    App* app = context;
+    submenu_reset(app->submenu);
+    submenu_add_item(app->submenu, "1 Card", AppSettingsSelection_1, tarot_app_menu_callback_settings, app);
+    submenu_add_item(app->submenu, "2 Cards", AppSettingsSelection_2, tarot_app_menu_callback_settings, app);
+    submenu_add_item(app->submenu, "3 Cards", AppSettingsSelection_3, tarot_app_menu_callback_settings, app);
+    view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Submenu);
+}
+
+bool tarot_app_scene_on_event_settings(void* context, SceneManagerEvent event) {
+    FURI_LOG_T(TAG, "tarot_app_scene_on_event_settings");
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void tarot_app_scene_on_exit_settings(void* context) {
+    FURI_LOG_T(TAG, "tarot_app_scene_on_exit_settings");
+    App* app = context;
+    submenu_reset(app->submenu);
 }
