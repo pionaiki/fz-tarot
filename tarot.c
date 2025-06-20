@@ -159,8 +159,6 @@ void tarot_app_scene_on_exit_about(void* context) {
 
 /* Game scene */
 
-/* ###### */
-
 const int card_x = 23;
 const int card_y = 32;
 const int card_number = 22;
@@ -308,12 +306,30 @@ void draw_tarot(void* context) {
     if(card_selected >= n) card_selected = 0;
     spread.selected[card_selected] = 1;
     int x_offsets[3] = {(128 - card_x) / 2 - 32, (128 - card_x) / 2, (128 - card_x) / 2 + 32};
+    
     for(int i = 0; i < n; ++i) {
         widget_add_icon_element(
             app->widget, x_offsets[i], 10 - 2 * spread.selected[i], card[spread.card[i]].icon);
+        // Add "R" indicator for reversed cards
+        if(spread.card[i] >= card_number) {
+            widget_add_string_element(
+                app->widget, 
+                x_offsets[i] + card_x - 8, 
+                10 - 2 * spread.selected[i] + 2, 
+                AlignRight, 
+                AlignTop, 
+                FontSecondary, 
+                "R");
+        }
     }
+    
+    // Adjusted cursor position (moved 8px to the right)
     widget_add_icon_element(
-        app->widget, x_offsets[card_selected] - 11 + card_x / 2, 41, &I_cursor);
+        app->widget, 
+        x_offsets[card_selected] - 11 + card_x / 2 + 9,
+        41, 
+        &I_cursor);
+    
     widget_add_string_element(
         app->widget,
         64,
@@ -399,8 +415,6 @@ void tarot_app_scene_on_exit_game(void* context) {
     App* app = context;
     widget_reset(app->widget);
 }
-
-/* ###### */
 
 // Forward declarations for settings scene (must be before handler arrays)
 void tarot_app_scene_on_enter_settings(void* context);
@@ -543,7 +557,7 @@ int32_t tarot_app(void* p) {
     return 0;
 }
 
-/* NEW: Settings scene */
+/* Settings scene */
 
 typedef enum {
     AppSettingsSelection_1 = 1,
