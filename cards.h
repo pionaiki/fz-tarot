@@ -8,7 +8,7 @@ struct Icon;
 
 // Card struct
 typedef struct {
-    const char name[32];
+    const char* name;
     const struct Icon* icon;
 } Card;
 
