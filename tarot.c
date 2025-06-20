@@ -325,7 +325,7 @@ void draw_tarot(void* context) {
 
     // Adjusted cursor position (moved 8px to the right)
     widget_add_icon_element(
-        app->widget, x_offsets[card_selected] - 11 + card_x / 2 + 9, 41, &I_cursor);
+        app->widget, x_offsets[card_selected] - 2 + card_x / 2, 41, &I_cursor);
 
     widget_add_string_element(
         app->widget,
