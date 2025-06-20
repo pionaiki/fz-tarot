@@ -44,8 +44,8 @@ typedef struct {
 typedef enum {
     AppEvent_ShowGame,
     AppEvent_ShowAbout,
-    AppEvent_ShowDeckBrowser
-    AppEvent_ShowSettings,
+    AppEvent_ShowDeckBrowser,
+    AppEvent_ShowSettings
 } AppEvent;
 
 /* main menu scene */
@@ -54,8 +54,8 @@ typedef enum {
 typedef enum {
     AppMenuSelection_Run,
     AppMenuSelection_About,
-    AppMenuSelection_BrowseDeck
-    AppMenuSelection_Settings,
+    AppMenuSelection_BrowseDeck,
+    AppMenuSelection_Settings
 } AppMenuSelection;
 
 /* main menu callback - sends a custom event to the scene manager based on the menu selection */
