@@ -22,7 +22,11 @@ typedef enum {
 } AppScene;
 
 /* ids for the 2 types of view used by the app */
-typedef enum { AppView_Submenu, AppView_Popup, AppView_Widget } AppView;
+typedef enum {
+    AppView_Submenu,
+    AppView_Popup,
+    AppView_Widget
+} AppView;
 
 /* the app context struct */
 typedef struct {
@@ -35,12 +39,20 @@ typedef struct {
 } App;
 
 /* all custom events */
-typedef enum { AppEvent_ShowGame, AppEvent_ShowAbout, AppEvent_ShowSettings } AppEvent;
+typedef enum {
+    AppEvent_ShowGame,
+    AppEvent_ShowAbout,
+    AppEvent_ShowSettings
+} AppEvent;
 
 /* main menu scene */
 
 /* indices for menu items */
-typedef enum { AppMenuSelection_Run, AppMenuSelection_About, AppMenuSelection_Settings } AppMenuSelection;
+typedef enum {
+    AppMenuSelection_Run,
+    AppMenuSelection_About,
+    AppMenuSelection_Settings
+} AppMenuSelection;
 
 /* main menu callback - sends a custom event to the scene manager based on the menu selection */
 void tarot_app_menu_callback_main_menu(void* context, uint32_t index) {
@@ -66,17 +78,9 @@ void tarot_app_scene_on_enter_main_menu(void* context) {
     submenu_reset(app->submenu);
 
     submenu_add_item(
-        app->submenu,
-        "Run",
-        AppMenuSelection_Run,
-        tarot_app_menu_callback_main_menu,
-        app);
+        app->submenu, "Run", AppMenuSelection_Run, tarot_app_menu_callback_main_menu, app);
     submenu_add_item(
-        app->submenu,
-        "About",
-        AppMenuSelection_About,
-        tarot_app_menu_callback_main_menu,
-        app);
+        app->submenu, "About", AppMenuSelection_About, tarot_app_menu_callback_main_menu, app);
     submenu_add_item(
         app->submenu,
         "Settings",
@@ -129,8 +133,14 @@ void tarot_app_scene_on_enter_about(void* context) {
     popup_reset(app->popup);
     popup_set_context(app->popup, app);
     popup_set_header(app->popup, "About", 64, 1, AlignCenter, AlignTop);
-    popup_set_icon(app->popup, 16, 64-13, &I_github_icon);
-    popup_set_text(app->popup, "\n\nCode: pionaiki\nArt: tihyltew\n\n       /pionaiki/fz-tarot", 64, 0, AlignCenter, AlignTop);
+    popup_set_icon(app->popup, 16, 64 - 13, &I_github_icon);
+    popup_set_text(
+        app->popup,
+        "\n\nCode: pionaiki\nArt: tihyltew\n\n       /pionaiki/fz-tarot",
+        64,
+        0,
+        AlignCenter,
+        AlignTop);
     view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Popup);
 }
 
@@ -164,76 +174,119 @@ struct Card {
 
 const struct Card card[] = {
     // Major Arcana (upright)
-    {"The Fool",            &I_major_0},
-    {"The Magician",        &I_major_1},
-    {"The High Priestess",  &I_major_2},
-    {"The Empress",         &I_major_3},
-    {"The Emperor",         &I_major_4},
-    {"The Hierophant",      &I_major_5},
-    {"The Lovers",          &I_major_6},
-    {"The Chariot",         &I_major_7},
-    {"Strength",            &I_major_8},
-    {"The Hermit",          &I_major_9},
-    {"Wheel of Fortune",    &I_major_10},
-    {"Justice",             &I_major_11},
-    {"The Hanged Man",      &I_major_12},
-    {"Death",               &I_major_13},
-    {"Temperance",          &I_major_14},
-    {"The Devil",           &I_major_15},
-    {"The Tower",           &I_major_16},
-    {"The Star",            &I_major_17},
-    {"The Moon",            &I_major_18},
-    {"The Sun",             &I_major_19},
-    {"Judgement",           &I_major_20},
-    {"The World",           &I_major_21},
+    {"The Fool", &I_major_0},
+    {"The Magician", &I_major_1},
+    {"The High Priestess", &I_major_2},
+    {"The Empress", &I_major_3},
+    {"The Emperor", &I_major_4},
+    {"The Hierophant", &I_major_5},
+    {"The Lovers", &I_major_6},
+    {"The Chariot", &I_major_7},
+    {"Strength", &I_major_8},
+    {"The Hermit", &I_major_9},
+    {"Wheel of Fortune", &I_major_10},
+    {"Justice", &I_major_11},
+    {"The Hanged Man", &I_major_12},
+    {"Death", &I_major_13},
+    {"Temperance", &I_major_14},
+    {"The Devil", &I_major_15},
+    {"The Tower", &I_major_16},
+    {"The Star", &I_major_17},
+    {"The Moon", &I_major_18},
+    {"The Sun", &I_major_19},
+    {"Judgement", &I_major_20},
+    {"The World", &I_major_21},
     // Major Arcana (reversed)
-    {"The Fool",            &I_major_0_},
-    {"The Magician",        &I_major_1_},
-    {"The High Priestess",  &I_major_2_},
-    {"The Empress",         &I_major_3_},
-    {"The Emperor",         &I_major_4_},
-    {"The Hierophant",      &I_major_5_},
-    {"The Lovers",          &I_major_6_},
-    {"The Chariot",         &I_major_7_},
-    {"Strength",            &I_major_8_},
-    {"The Hermit",          &I_major_9_},
-    {"Wheel of Fortune",    &I_major_10_},
-    {"Justice",             &I_major_11_},
-    {"The Hanged Man",      &I_major_12_},
-    {"Death",               &I_major_13_},
-    {"Temperance",          &I_major_14_},
-    {"The Devil",           &I_major_15_},
-    {"The Tower",           &I_major_16_},
-    {"The Star",            &I_major_17_},
-    {"The Moon",            &I_major_18_},
-    {"The Sun",             &I_major_19_},
-    {"Judgement",           &I_major_20_},
-    {"The World",           &I_major_21_},
+    {"The Fool", &I_major_0_},
+    {"The Magician", &I_major_1_},
+    {"The High Priestess", &I_major_2_},
+    {"The Empress", &I_major_3_},
+    {"The Emperor", &I_major_4_},
+    {"The Hierophant", &I_major_5_},
+    {"The Lovers", &I_major_6_},
+    {"The Chariot", &I_major_7_},
+    {"Strength", &I_major_8_},
+    {"The Hermit", &I_major_9_},
+    {"Wheel of Fortune", &I_major_10_},
+    {"Justice", &I_major_11_},
+    {"The Hanged Man", &I_major_12_},
+    {"Death", &I_major_13_},
+    {"Temperance", &I_major_14_},
+    {"The Devil", &I_major_15_},
+    {"The Tower", &I_major_16_},
+    {"The Star", &I_major_17_},
+    {"The Moon", &I_major_18_},
+    {"The Sun", &I_major_19_},
+    {"Judgement", &I_major_20_},
+    {"The World", &I_major_21_},
     // Minor Arcana Placeholders (upright only, not used in spread)
     // Cups
-    {"Ace of Cups", NULL}, {"2 of Cups", NULL}, {"3 of Cups", NULL}, {"4 of Cups", NULL}, {"5 of Cups", NULL},
-    {"6 of Cups", NULL}, {"7 of Cups", NULL}, {"8 of Cups", NULL}, {"9 of Cups", NULL}, {"10 of Cups", NULL},
-    {"Page of Cups", NULL}, {"Knight of Cups", NULL}, {"Queen of Cups", NULL}, {"King of Cups", NULL},
+    {"Ace of Cups", NULL},
+    {"2 of Cups", NULL},
+    {"3 of Cups", NULL},
+    {"4 of Cups", NULL},
+    {"5 of Cups", NULL},
+    {"6 of Cups", NULL},
+    {"7 of Cups", NULL},
+    {"8 of Cups", NULL},
+    {"9 of Cups", NULL},
+    {"10 of Cups", NULL},
+    {"Page of Cups", NULL},
+    {"Knight of Cups", NULL},
+    {"Queen of Cups", NULL},
+    {"King of Cups", NULL},
     // Swords
-    {"Ace of Swords", NULL}, {"2 of Swords", NULL}, {"3 of Swords", NULL}, {"4 of Swords", NULL}, {"5 of Swords", NULL},
-    {"6 of Swords", NULL}, {"7 of Swords", NULL}, {"8 of Swords", NULL}, {"9 of Swords", NULL}, {"10 of Swords", NULL},
-    {"Page of Swords", NULL}, {"Knight of Swords", NULL}, {"Queen of Swords", NULL}, {"King of Swords", NULL},
+    {"Ace of Swords", NULL},
+    {"2 of Swords", NULL},
+    {"3 of Swords", NULL},
+    {"4 of Swords", NULL},
+    {"5 of Swords", NULL},
+    {"6 of Swords", NULL},
+    {"7 of Swords", NULL},
+    {"8 of Swords", NULL},
+    {"9 of Swords", NULL},
+    {"10 of Swords", NULL},
+    {"Page of Swords", NULL},
+    {"Knight of Swords", NULL},
+    {"Queen of Swords", NULL},
+    {"King of Swords", NULL},
     // Wands
-    {"Ace of Wands", NULL}, {"2 of Wands", NULL}, {"3 of Wands", NULL}, {"4 of Wands", NULL}, {"5 of Wands", NULL},
-    {"6 of Wands", NULL}, {"7 of Wands", NULL}, {"8 of Wands", NULL}, {"9 of Wands", NULL}, {"10 of Wands", NULL},
-    {"Page of Wands", NULL}, {"Knight of Wands", NULL}, {"Queen of Wands", NULL}, {"King of Wands", NULL},
+    {"Ace of Wands", NULL},
+    {"2 of Wands", NULL},
+    {"3 of Wands", NULL},
+    {"4 of Wands", NULL},
+    {"5 of Wands", NULL},
+    {"6 of Wands", NULL},
+    {"7 of Wands", NULL},
+    {"8 of Wands", NULL},
+    {"9 of Wands", NULL},
+    {"10 of Wands", NULL},
+    {"Page of Wands", NULL},
+    {"Knight of Wands", NULL},
+    {"Queen of Wands", NULL},
+    {"King of Wands", NULL},
     // Pentacles
-    {"Ace of Pentacles", NULL}, {"2 of Pentacles", NULL}, {"3 of Pentacles", NULL}, {"4 of Pentacles", NULL}, {"5 of Pentacles", NULL},
-    {"6 of Pentacles", NULL}, {"7 of Pentacles", NULL}, {"8 of Pentacles", NULL}, {"9 of Pentacles", NULL}, {"10 of Pentacles", NULL},
-    {"Page of Pentacles", NULL}, {"Knight of Pentacles", NULL}, {"Queen of Pentacles", NULL}, {"King of Pentacles", NULL}
-};
+    {"Ace of Pentacles", NULL},
+    {"2 of Pentacles", NULL},
+    {"3 of Pentacles", NULL},
+    {"4 of Pentacles", NULL},
+    {"5 of Pentacles", NULL},
+    {"6 of Pentacles", NULL},
+    {"7 of Pentacles", NULL},
+    {"8 of Pentacles", NULL},
+    {"9 of Pentacles", NULL},
+    {"10 of Pentacles", NULL},
+    {"Page of Pentacles", NULL},
+    {"Knight of Pentacles", NULL},
+    {"Queen of Pentacles", NULL},
+    {"King of Pentacles", NULL}};
 
-static uint16_t unbiased_rand (uint16_t max) {
+static uint16_t unbiased_rand(uint16_t max) {
     uint16_t remainder = RAND_MAX % max;
     uint16_t x;
     do {
         x = rand();
-    } while (x >= RAND_MAX - remainder);
+    } while(x >= RAND_MAX - remainder);
     return x % max;
 }
 
@@ -250,15 +303,25 @@ void draw_tarot(void* context) {
     int n = app->cards_to_pull;
     if(n < 1) n = 1;
     if(n > 3) n = 3;
-    for(int i = 0; i < 3; ++i) spread.selected[i] = 0;
+    for(int i = 0; i < 3; ++i)
+        spread.selected[i] = 0;
     if(card_selected >= n) card_selected = 0;
     spread.selected[card_selected] = 1;
-    int x_offsets[3] = { (128-card_x)/2 - 32, (128-card_x)/2, (128-card_x)/2 + 32 };
+    int x_offsets[3] = {(128 - card_x) / 2 - 32, (128 - card_x) / 2, (128 - card_x) / 2 + 32};
     for(int i = 0; i < n; ++i) {
-        widget_add_icon_element(app->widget, x_offsets[i], 10 - 2*spread.selected[i], card[spread.card[i]].icon);
+        widget_add_icon_element(
+            app->widget, x_offsets[i], 10 - 2 * spread.selected[i], card[spread.card[i]].icon);
     }
-    widget_add_icon_element(app->widget, x_offsets[card_selected] - 11 + card_x/2, 41, &I_cursor);
-    widget_add_string_element(app->widget, 64, 60, AlignCenter, AlignBottom, FontPrimary, card[spread.card[card_selected]].name);
+    widget_add_icon_element(
+        app->widget, x_offsets[card_selected] - 11 + card_x / 2, 41, &I_cursor);
+    widget_add_string_element(
+        app->widget,
+        64,
+        60,
+        AlignCenter,
+        AlignBottom,
+        FontPrimary,
+        card[spread.card[card_selected]].name);
 }
 
 static bool widget_input_callback(InputEvent* input_event, void* context) {
@@ -271,15 +334,15 @@ static bool widget_input_callback(InputEvent* input_event, void* context) {
         switch(input_event->key) {
         case InputKeyRight:
             card_selected++;
-            if (card_selected >= n) {
+            if(card_selected >= n) {
                 card_selected = 0;
             }
             consumed = true;
             break;
         case InputKeyLeft:
             card_selected--;
-            if (card_selected < 0) {
-                card_selected = n-1;
+            if(card_selected < 0) {
+                card_selected = n - 1;
             }
             consumed = true;
             break;
@@ -414,7 +477,8 @@ void tarot_app_view_dispatcher_init(App* app) {
 
     // add views to the dispatcher, indexed by their enum value
     FURI_LOG_D(TAG, "tarot_app_view_dispatcher_init adding view menu");
-    view_dispatcher_add_view(app->view_dispatcher, AppView_Submenu, submenu_get_view(app->submenu));
+    view_dispatcher_add_view(
+        app->view_dispatcher, AppView_Submenu, submenu_get_view(app->submenu));
 
     FURI_LOG_D(TAG, "tarot_app_view_dispatcher_init adding view popup");
     view_dispatcher_add_view(app->view_dispatcher, AppView_Popup, popup_get_view(app->popup));
@@ -481,7 +545,11 @@ int32_t tarot_app(void* p) {
 
 /* NEW: Settings scene */
 
-typedef enum { AppSettingsSelection_1 = 1, AppSettingsSelection_2, AppSettingsSelection_3 } AppSettingsSelection;
+typedef enum {
+    AppSettingsSelection_1 = 1,
+    AppSettingsSelection_2,
+    AppSettingsSelection_3
+} AppSettingsSelection;
 
 void tarot_app_menu_callback_settings(void* context, uint32_t index) {
     FURI_LOG_T(TAG, "tarot_app_menu_callback_settings");
@@ -495,9 +563,12 @@ void tarot_app_scene_on_enter_settings(void* context) {
     FURI_LOG_T(TAG, "tarot_app_scene_on_enter_settings");
     App* app = context;
     submenu_reset(app->submenu);
-    submenu_add_item(app->submenu, "1 Card", AppSettingsSelection_1, tarot_app_menu_callback_settings, app);
-    submenu_add_item(app->submenu, "2 Cards", AppSettingsSelection_2, tarot_app_menu_callback_settings, app);
-    submenu_add_item(app->submenu, "3 Cards", AppSettingsSelection_3, tarot_app_menu_callback_settings, app);
+    submenu_add_item(
+        app->submenu, "1 Card", AppSettingsSelection_1, tarot_app_menu_callback_settings, app);
+    submenu_add_item(
+        app->submenu, "2 Cards", AppSettingsSelection_2, tarot_app_menu_callback_settings, app);
+    submenu_add_item(
+        app->submenu, "3 Cards", AppSettingsSelection_3, tarot_app_menu_callback_settings, app);
     view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Submenu);
 }
 
