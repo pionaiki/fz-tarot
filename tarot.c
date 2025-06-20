@@ -6,6 +6,7 @@
 #include <gui/modules/submenu.h>
 #include <gui/modules/popup.h>
 #include <gui/modules/widget.h>
+#include "cards.h"
 
 #define TAG "tarot"
 
@@ -18,6 +19,7 @@ typedef enum {
     AppScene_About,
     AppScene_Game,
     AppScene_Settings,
+    AppScene_DeckBrowser,
     AppScene_count
 } AppScene;
 
@@ -42,7 +44,8 @@ typedef struct {
 typedef enum {
     AppEvent_ShowGame,
     AppEvent_ShowAbout,
-    AppEvent_ShowSettings
+    AppEvent_ShowSettings,
+    AppEvent_ShowDeckBrowser
 } AppEvent;
 
 /* main menu scene */
@@ -51,7 +54,8 @@ typedef enum {
 typedef enum {
     AppMenuSelection_Run,
     AppMenuSelection_About,
-    AppMenuSelection_Settings
+    AppMenuSelection_Settings,
+    AppMenuSelection_BrowseDeck
 } AppMenuSelection;
 
 /* main menu callback - sends a custom event to the scene manager based on the menu selection */
@@ -67,6 +71,9 @@ void tarot_app_menu_callback_main_menu(void* context, uint32_t index) {
         break;
     case AppMenuSelection_Settings:
         scene_manager_handle_custom_event(app->scene_manager, AppEvent_ShowSettings);
+        break;
+    case AppMenuSelection_BrowseDeck:
+        scene_manager_handle_custom_event(app->scene_manager, AppEvent_ShowDeckBrowser);
         break;
     }
 }
@@ -85,6 +92,12 @@ void tarot_app_scene_on_enter_main_menu(void* context) {
         app->submenu,
         "Settings",
         AppMenuSelection_Settings,
+        tarot_app_menu_callback_main_menu,
+        app);
+    submenu_add_item(
+        app->submenu,
+        "Browse Deck",
+        AppMenuSelection_BrowseDeck,
         tarot_app_menu_callback_main_menu,
         app);
     view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Submenu);
@@ -108,6 +121,10 @@ bool tarot_app_scene_on_event_main_menu(void* context, SceneManagerEvent event) 
             break;
         case AppEvent_ShowSettings:
             scene_manager_next_scene(app->scene_manager, AppScene_Settings);
+            consumed = true;
+            break;
+        case AppEvent_ShowDeckBrowser:
+            scene_manager_next_scene(app->scene_manager, AppScene_DeckBrowser);
             consumed = true;
             break;
         }
@@ -159,141 +176,17 @@ void tarot_app_scene_on_exit_about(void* context) {
 
 /* Game scene */
 
-const int card_x = 23;
-const int card_y = 32;
-const int card_number = 22;
-
-int card_selected = 0;
-
-struct Card {
-    const char name[20];
-    const Icon* icon;
-};
-
-const struct Card card[] = {
-    // Major Arcana (upright)
-    {"The Fool", &I_major_0},
-    {"The Magician", &I_major_1},
-    {"The High Priestess", &I_major_2},
-    {"The Empress", &I_major_3},
-    {"The Emperor", &I_major_4},
-    {"The Hierophant", &I_major_5},
-    {"The Lovers", &I_major_6},
-    {"The Chariot", &I_major_7},
-    {"Strength", &I_major_8},
-    {"The Hermit", &I_major_9},
-    {"Wheel of Fortune", &I_major_10},
-    {"Justice", &I_major_11},
-    {"The Hanged Man", &I_major_12},
-    {"Death", &I_major_13},
-    {"Temperance", &I_major_14},
-    {"The Devil", &I_major_15},
-    {"The Tower", &I_major_16},
-    {"The Star", &I_major_17},
-    {"The Moon", &I_major_18},
-    {"The Sun", &I_major_19},
-    {"Judgement", &I_major_20},
-    {"The World", &I_major_21},
-    // Major Arcana (reversed)
-    {"The Fool", &I_major_0_},
-    {"The Magician", &I_major_1_},
-    {"The High Priestess", &I_major_2_},
-    {"The Empress", &I_major_3_},
-    {"The Emperor", &I_major_4_},
-    {"The Hierophant", &I_major_5_},
-    {"The Lovers", &I_major_6_},
-    {"The Chariot", &I_major_7_},
-    {"Strength", &I_major_8_},
-    {"The Hermit", &I_major_9_},
-    {"Wheel of Fortune", &I_major_10_},
-    {"Justice", &I_major_11_},
-    {"The Hanged Man", &I_major_12_},
-    {"Death", &I_major_13_},
-    {"Temperance", &I_major_14_},
-    {"The Devil", &I_major_15_},
-    {"The Tower", &I_major_16_},
-    {"The Star", &I_major_17_},
-    {"The Moon", &I_major_18_},
-    {"The Sun", &I_major_19_},
-    {"Judgement", &I_major_20_},
-    {"The World", &I_major_21_},
-    // Minor Arcana Placeholders (upright only, not used in spread)
-    // Cups
-    {"Ace of Cups", NULL},
-    {"2 of Cups", NULL},
-    {"3 of Cups", NULL},
-    {"4 of Cups", NULL},
-    {"5 of Cups", NULL},
-    {"6 of Cups", NULL},
-    {"7 of Cups", NULL},
-    {"8 of Cups", NULL},
-    {"9 of Cups", NULL},
-    {"10 of Cups", NULL},
-    {"Page of Cups", NULL},
-    {"Knight of Cups", NULL},
-    {"Queen of Cups", NULL},
-    {"King of Cups", NULL},
-    // Swords
-    {"Ace of Swords", NULL},
-    {"2 of Swords", NULL},
-    {"3 of Swords", NULL},
-    {"4 of Swords", NULL},
-    {"5 of Swords", NULL},
-    {"6 of Swords", NULL},
-    {"7 of Swords", NULL},
-    {"8 of Swords", NULL},
-    {"9 of Swords", NULL},
-    {"10 of Swords", NULL},
-    {"Page of Swords", NULL},
-    {"Knight of Swords", NULL},
-    {"Queen of Swords", NULL},
-    {"King of Swords", NULL},
-    // Wands
-    {"Ace of Wands", NULL},
-    {"2 of Wands", NULL},
-    {"3 of Wands", NULL},
-    {"4 of Wands", NULL},
-    {"5 of Wands", NULL},
-    {"6 of Wands", NULL},
-    {"7 of Wands", NULL},
-    {"8 of Wands", NULL},
-    {"9 of Wands", NULL},
-    {"10 of Wands", NULL},
-    {"Page of Wands", NULL},
-    {"Knight of Wands", NULL},
-    {"Queen of Wands", NULL},
-    {"King of Wands", NULL},
-    // Pentacles
-    {"Ace of Pentacles", NULL},
-    {"2 of Pentacles", NULL},
-    {"3 of Pentacles", NULL},
-    {"4 of Pentacles", NULL},
-    {"5 of Pentacles", NULL},
-    {"6 of Pentacles", NULL},
-    {"7 of Pentacles", NULL},
-    {"8 of Pentacles", NULL},
-    {"9 of Pentacles", NULL},
-    {"10 of Pentacles", NULL},
-    {"Page of Pentacles", NULL},
-    {"Knight of Pentacles", NULL},
-    {"Queen of Pentacles", NULL},
-    {"King of Pentacles", NULL}};
-
-static uint16_t unbiased_rand(uint16_t max) {
-    uint16_t remainder = RAND_MAX % max;
-    uint16_t x;
-    do {
-        x = rand();
-    } while(x >= RAND_MAX - remainder);
-    return x % max;
-}
-
 struct Spread {
     int card[3];
     bool selected[3];
 };
 
 struct Spread spread;
+
+// Card selection and card size globals
+int card_selected = 0;
+const int card_x = 23;
+const int card_y = 32;
 
 void draw_tarot(void* context) {
     App* app = context;
@@ -324,8 +217,7 @@ void draw_tarot(void* context) {
     }
 
     // Adjusted cursor position (moved 8px to the right)
-    widget_add_icon_element(
-        app->widget, x_offsets[card_selected] - 2 + card_x / 2, 41, &I_cursor);
+    widget_add_icon_element(app->widget, x_offsets[card_selected] - 2 + card_x / 2, 41, &I_cursor);
 
     widget_add_string_element(
         app->widget,
@@ -418,26 +310,34 @@ void tarot_app_scene_on_enter_settings(void* context);
 bool tarot_app_scene_on_event_settings(void* context, SceneManagerEvent event);
 void tarot_app_scene_on_exit_settings(void* context);
 
+// Forward declarations for deck browser scene
+void tarot_app_scene_on_enter_deck_browser(void* context);
+bool tarot_app_scene_on_event_deck_browser(void* context, SceneManagerEvent event);
+void tarot_app_scene_on_exit_deck_browser(void* context);
+
 /* collection of all scene on_enter handlers - in the same order as their enum */
 void (*const tarot_app_scene_on_enter_handlers[])(void*) = {
     tarot_app_scene_on_enter_main_menu,
     tarot_app_scene_on_enter_about,
     tarot_app_scene_on_enter_game,
-    tarot_app_scene_on_enter_settings};
+    tarot_app_scene_on_enter_settings,
+    tarot_app_scene_on_enter_deck_browser};
 
 /* collection of all scene on event handlers - in the same order as their enum */
 bool (*const tarot_app_scene_on_event_handlers[])(void*, SceneManagerEvent) = {
     tarot_app_scene_on_event_main_menu,
     tarot_app_scene_on_event_about,
     tarot_app_scene_on_event_game,
-    tarot_app_scene_on_event_settings};
+    tarot_app_scene_on_event_settings,
+    tarot_app_scene_on_event_deck_browser};
 
 /* collection of all scene on exit handlers - in the same order as their enum */
 void (*const tarot_app_scene_on_exit_handlers[])(void*) = {
     tarot_app_scene_on_exit_main_menu,
     tarot_app_scene_on_exit_about,
     tarot_app_scene_on_exit_game,
-    tarot_app_scene_on_exit_settings};
+    tarot_app_scene_on_exit_settings,
+    tarot_app_scene_on_exit_deck_browser};
 
 /* collection of all on_enter, on_event, on_exit handlers */
 const SceneManagerHandlers tarot_app_scene_event_handlers = {
@@ -594,4 +494,100 @@ void tarot_app_scene_on_exit_settings(void* context) {
     FURI_LOG_T(TAG, "tarot_app_scene_on_exit_settings");
     App* app = context;
     submenu_reset(app->submenu);
+}
+
+// Deck browser state
+static int deck_browser_index = 0;
+
+static void draw_deck_browser(void* context) {
+    App* app = context;
+    widget_reset(app->widget);
+    // 22 majors (upright+reversed shown together) + 56 minors = 78 cards
+    int total = 78;
+    if(deck_browser_index < 0) deck_browser_index = 0;
+    if(deck_browser_index >= total) deck_browser_index = total - 1;
+    if(deck_browser_index < 22) {
+        // Major arcana: show upright and reversed side by side
+        int major_idx = deck_browser_index;
+        const Card* upright = &card[major_idx];
+        const Card* reversed = &card[major_idx + 22];
+        // Upright image
+        if(upright->icon) {
+            widget_add_icon_element(app->widget, 16, 10, upright->icon);
+        } else {
+            widget_add_string_element(
+                app->widget, 32, 24, AlignCenter, AlignTop, FontPrimary, "(no image)");
+        }
+        // Reversed image
+        if(reversed->icon) {
+            widget_add_icon_element(app->widget, 72, 10, reversed->icon);
+            widget_add_string_element(
+                app->widget, 72 + card_x / 2, 1, AlignCenter, AlignTop, FontPrimary, "R");
+        } else {
+            widget_add_string_element(
+                app->widget, 88, 24, AlignCenter, AlignTop, FontPrimary, "(no image)");
+        }
+        // Name (centered below both images)
+        widget_add_string_element(
+            app->widget, 64, 60, AlignCenter, AlignBottom, FontPrimary, upright->name);
+    } else {
+        // Minor arcana: upright only
+        const Card* c = &card[44 + (deck_browser_index - 22)];
+        if(c->icon) {
+            widget_add_icon_element(app->widget, (128 - card_x) / 2, 10, c->icon);
+        } else {
+            widget_add_string_element(
+                app->widget, 64, 24, AlignCenter, AlignTop, FontPrimary, "(no image)");
+        }
+        widget_add_string_element(
+            app->widget, 64, 60, AlignCenter, AlignBottom, FontPrimary, c->name);
+    }
+    // Card number
+    char idxbuf[16];
+    snprintf(idxbuf, sizeof(idxbuf), "%d/%d", deck_browser_index + 1, total);
+    widget_add_string_element(app->widget, 124, 2, AlignRight, AlignTop, FontSecondary, idxbuf);
+}
+
+static bool deck_browser_input_callback(InputEvent* input_event, void* context) {
+    App* app = context;
+    bool consumed = false;
+    int total = 78;
+    if(input_event->type == InputTypeShort) {
+        switch(input_event->key) {
+        case InputKeyRight:
+            deck_browser_index++;
+            if(deck_browser_index >= total) deck_browser_index = 0;
+            consumed = true;
+            break;
+        case InputKeyLeft:
+            deck_browser_index--;
+            if(deck_browser_index < 0) deck_browser_index = total - 1;
+            consumed = true;
+            break;
+        default:
+            break;
+        }
+    }
+    if(consumed) draw_deck_browser(app);
+    return consumed;
+}
+
+void tarot_app_scene_on_enter_deck_browser(void* context) {
+    App* app = context;
+    deck_browser_index = 0;
+    draw_deck_browser(app);
+    view_set_context(widget_get_view(app->widget), app);
+    view_set_input_callback(widget_get_view(app->widget), deck_browser_input_callback);
+    view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Widget);
+}
+
+bool tarot_app_scene_on_event_deck_browser(void* context, SceneManagerEvent event) {
+    UNUSED(context);
+    UNUSED(event);
+    return false;
+}
+
+void tarot_app_scene_on_exit_deck_browser(void* context) {
+    App* app = context;
+    widget_reset(app->widget);
 }

@@ -23,3 +23,7 @@ Tarot spread for Flipper Zero. This app can give you a linear spread of the majo
 ## Credits
 - Code: [pionaiki](https://github.com/pionaiki)
 - Art: [tihyltew](https://github.com/tihyltew)
+
+## Developer Guide
+
+See [CARDS.md](./CARDS.md) for instructions on how to add new cards, images, and update the deck.
