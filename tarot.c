@@ -37,7 +37,7 @@ typedef struct {
     Submenu* submenu; // Submenu for the main menu
     Popup* popup; // Popup for about
     Widget* widget; // Widget for game
-    int cards_to_pull; // NEW: Number of cards to pull (1-3)
+    bool allow_reversed; // NEW: Toggle for reversed cards
 } App;
 
 /* all custom events */
@@ -191,9 +191,7 @@ const int card_y = 32;
 void draw_tarot(void* context) {
     App* app = context;
     widget_reset(app->widget);
-    int n = app->cards_to_pull;
-    if(n < 1) n = 1;
-    if(n > 3) n = 3;
+    int n = 3; // Always 3 cards
     for(int i = 0; i < 3; ++i)
         spread.selected[i] = 0;
     if(card_selected >= n) card_selected = 0;
@@ -220,9 +218,7 @@ void draw_tarot(void* context) {
 
 static bool widget_input_callback(InputEvent* input_event, void* context) {
     App* app = context;
-    int n = app->cards_to_pull;
-    if(n < 1) n = 1;
-    if(n > 3) n = 3;
+    int n = 3; // Always 3 cards
     bool consumed = false;
     if(input_event->type == InputTypeShort) {
         switch(input_event->key) {
@@ -240,14 +236,6 @@ static bool widget_input_callback(InputEvent* input_event, void* context) {
             }
             consumed = true;
             break;
-        case InputKeyUp:
-            // UP
-            //consumed = true;
-            break;
-        case InputKeyDown:
-            // DOWN
-            //consumed = true;
-            break;
         default:
             consumed = false;
             break;
@@ -260,9 +248,7 @@ static bool widget_input_callback(InputEvent* input_event, void* context) {
 void tarot_app_scene_on_enter_game(void* context) {
     FURI_LOG_T(TAG, "tarot_app_scene_on_enter_game");
     App* app = context;
-    int n = app->cards_to_pull;
-    if(n < 1) n = 1;
-    if(n > 3) n = 3;
+    int n = 3; // Always 3 cards
     for(int i = 0; i < n; ++i) {
         int unique = 0;
         do {
@@ -272,9 +258,9 @@ void tarot_app_scene_on_enter_game(void* context) {
                 if(spread.card[i] == spread.card[j]) unique = 0;
             }
         } while(!unique);
-        // Always-on reversed logic
-        // TODO: Make this a setting
-        if(unbiased_rand(2)) spread.card[i] += card_number; // 50% chance reversed
+        // Reversed logic based on setting
+        if(app->allow_reversed && unbiased_rand(2))
+            spread.card[i] += card_number; // 50% chance reversed
     }
     draw_tarot(app);
     view_set_context(widget_get_view(app->widget), app);
@@ -394,7 +380,7 @@ App* tarot_app_init() {
     App* app = malloc(sizeof(App));
     tarot_app_scene_manager_init(app);
     tarot_app_view_dispatcher_init(app);
-    app->cards_to_pull = 3; // Default to 3 cards
+    app->allow_reversed = false; // Default to NOT allow reversed cards
     return app;
 }
 
@@ -540,31 +526,33 @@ void tarot_app_scene_on_exit_deck_browser(void* context) {
 
 /* Settings scene */
 
-typedef enum {
-    AppSettingsSelection_1 = 1,
-    AppSettingsSelection_2,
-    AppSettingsSelection_3
-} AppSettingsSelection;
+// New: Settings scene state
+static void draw_settings_menu(App* app);
 
-void tarot_app_menu_callback_settings(void* context, uint32_t index) {
-    FURI_LOG_T(TAG, "tarot_app_menu_callback_settings");
+static void settings_menu_callback(void* context, uint32_t index) {
+    UNUSED(index);
     App* app = context;
-    app->cards_to_pull = index;
-    // Go back to main menu after selection
-    scene_manager_previous_scene(app->scene_manager);
+    app->allow_reversed = !app->allow_reversed;
+    draw_settings_menu(app);
+}
+
+static void draw_settings_menu(App* app) {
+    submenu_reset(app->submenu);
+    submenu_add_item(
+        app->submenu,
+        app->allow_reversed ? "Reversed cards: On" : "Reversed cards: Off",
+        0,
+        settings_menu_callback,
+        app);
+    view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Submenu);
 }
 
 void tarot_app_scene_on_enter_settings(void* context) {
     FURI_LOG_T(TAG, "tarot_app_scene_on_enter_settings");
     App* app = context;
-    submenu_reset(app->submenu);
-    submenu_add_item(
-        app->submenu, "1 Card", AppSettingsSelection_1, tarot_app_menu_callback_settings, app);
-    submenu_add_item(
-        app->submenu, "2 Cards", AppSettingsSelection_2, tarot_app_menu_callback_settings, app);
-    submenu_add_item(
-        app->submenu, "3 Cards", AppSettingsSelection_3, tarot_app_menu_callback_settings, app);
-    view_dispatcher_switch_to_view(app->view_dispatcher, AppView_Submenu);
+    draw_settings_menu(app);
+    // Do NOT set a custom input callback here!
+    // view_set_context and view_set_input_callback are not needed for submenu
 }
 
 bool tarot_app_scene_on_event_settings(void* context, SceneManagerEvent event) {
