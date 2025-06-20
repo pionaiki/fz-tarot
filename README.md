@@ -13,7 +13,6 @@ Tarot spread for Flipper Zero. This app can give you a linear spread of the majo
 - [x] Add upside-down cards
 - [x] Make the random number generator source radio
 - [x] Make a deck browser
-- [ ] Allow the user to turn the upside-down cards on and off in settings
 - [ ] Add Minor arcana
 
 ## Credits
