@@ -310,24 +310,24 @@ void (*const tarot_app_scene_on_enter_handlers[])(void*) = {
     tarot_app_scene_on_enter_main_menu,
     tarot_app_scene_on_enter_about,
     tarot_app_scene_on_enter_game,
-    tarot_app_scene_on_enter_settings,
-    tarot_app_scene_on_enter_deck_browser};
+    tarot_app_scene_on_enter_deck_browser,
+    tarot_app_scene_on_enter_settings};
 
 /* collection of all scene on event handlers - in the same order as their enum */
 bool (*const tarot_app_scene_on_event_handlers[])(void*, SceneManagerEvent) = {
     tarot_app_scene_on_event_main_menu,
     tarot_app_scene_on_event_about,
     tarot_app_scene_on_event_game,
-    tarot_app_scene_on_event_settings,
-    tarot_app_scene_on_event_deck_browser};
+    tarot_app_scene_on_event_deck_browser,
+    tarot_app_scene_on_event_settings};
 
 /* collection of all scene on exit handlers - in the same order as their enum */
 void (*const tarot_app_scene_on_exit_handlers[])(void*) = {
     tarot_app_scene_on_exit_main_menu,
     tarot_app_scene_on_exit_about,
     tarot_app_scene_on_exit_game,
-    tarot_app_scene_on_exit_settings,
-    tarot_app_scene_on_exit_deck_browser};
+    tarot_app_scene_on_exit_deck_browser,
+    tarot_app_scene_on_exit_settings};
 
 /* collection of all on_enter, on_event, on_exit handlers */
 const SceneManagerHandlers tarot_app_scene_event_handlers = {
